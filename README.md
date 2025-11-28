@@ -14,7 +14,7 @@
 
 ## Demo
 
-[Demo 在这里](https://reedo0910.github.io/Clean-Scribe-TXT/)
+[Demo 在这里](https://reedo0910.github.io/kindle-scribe-txt-cleaner/)
 
 ## 它会做什么
 
@@ -68,6 +68,6 @@
 
 ------
 
-All code and documentation in this repo were produced by an LLM, not by a human.
+All code, icon, and documentation in this repo were produced by an LLM, not by a human.
 
 (=・ω・=)  ChatGPT-5.1

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+    <!-- Background -->
+    <rect x="4" y="4" width="40" height="40" rx="12" ry="12" fill="#f5f5f7" />
+
+    <!-- Inner card -->
+    <rect x="11" y="11" width="26" height="26" rx="6" ry="6" fill="#ffffff" stroke="#0078d4" stroke-width="2" />
+
+    <!-- Text line -->
+    <path d="M17 21h14" stroke="#0078d4" stroke-width="2.2" stroke-linecap="round" />
+
+    <!-- Check mark -->
+    <path d="M19 28l3 3 7-7" fill="none" stroke="#107c10" stroke-width="2.4" stroke-linecap="round"
+        stroke-linejoin="round" />
+</svg>
