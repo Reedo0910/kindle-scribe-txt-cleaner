@@ -1,6 +1,6 @@
 # Kindle Scribe TXT Cleaner
 
-> 声明：本仓库里的代码和这份 README，系由大语言模型（ChatGPT-5.1-Thinking）生成。  
+> 本仓库里的代码和这份 README 均系由大语言模型（ChatGPT-5.1-Thinking）生成。  
 
 ## 这是什么
 
