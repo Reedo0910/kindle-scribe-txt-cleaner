@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Kindle Scribe TXT Cleaner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f7;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px 24px 24px 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .controls label {
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            font-size: 13px;
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        button.primary {
+            background-color: #007aff;
+            border-color: #007aff;
+            color: #ffffff;
+        }
+
+        .btn-icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 420px;
+            box-sizing: border-box;
+            padding: 8px;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 13px;
+            border-radius: 8px;
+            border: 1px solid #d0d0d0;
+            resize: vertical;
+            white-space: pre-wrap;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #777777;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Kindle Scribe TXT Cleaner</h1>
+
+        <div class="controls">
+            <label for="fileInput">Select TXT file:</label>
+            <input type="file" id="fileInput" accept=".txt">
+        </div>
+
+        <div id="fileInfo" class="file-info">No file loaded.</div>
+
+        <textarea id="output"
+            placeholder="Cleaned text will appear here. You can also paste raw text here and press Clean."></textarea>
+
+        <div class="actions">
+            <button id="cleanButton" class="primary" disabled>
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M8 12l3 3 5-5"></path>
+                </svg>
+                <span>Clean</span>
+            </button>
+
+            <button id="downloadButton" disabled>
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4v10"></path>
+                    <path d="M8 10l4 4 4-4"></path>
+                    <path d="M6 18h12"></path>
+                </svg>
+                <span>TXT</span>
+            </button>
+
+            <button id="downloadMdButton" disabled>
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <path d="M7 15v-6l2.5 3 2.5-3v6"></path>
+                    <path d="M15 15v-6h2"></path>
+                </svg>
+                <span>MD</span>
+            </button>
+
+            <button id="copyButton" disabled>
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                    <rect x="5" y="5" width="10" height="10" rx="2"></rect>
+                </svg>
+                <span>Copy</span>
+            </button>
+        </div>
+
+        <div class="hint">
+            Hint: if you do not want to use file upload, paste your Kindle export text into the box,
+            then click "Clean".
+        </div>
+    </div>
+
+    <script>
+        // Core cleaning logic
+        function cleanKindleText(raw) {
+            if (!raw) {
+                return "";
+            }
+
+            // 1) Normalize line endings
+            let text = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+            // 2) Remove invisible special characters [\u00AD\u200B\u200C\u200D\uFEFF\u2060] and ˊ (U+02CA)
+            text = text.replace(/[\u00AD\u200B\u200C\u200D\uFEFF\u2060\u02CA]/g, "");
+
+            // 3) Remove "第 x 页" page headers
+            text = text.replace(/^第\s*\d+\s*页\s*$/gm, "");
+
+            // Remove leading blank lines
+            text = text.replace(/^\n+/, "");
+
+            // 4) Merge sentence splits caused by page breaks
+            const punct = "。！？；：，,、.…\"”’')】》";
+            const pattern = /([^\n])(\n{2,})([^\n])/g;
+
+            let changed = true;
+            while (changed) {
+                changed = false;
+                text = text.replace(pattern, function (match, prev, breaks, next) {
+                    if (punct.indexOf(prev) === -1) {
+                        changed = true;
+                        return prev + next;
+                    } else {
+                        const replacement = prev + "\n\n" + next;
+                        if (replacement !== match) {
+                            changed = true;
+                        }
+                        return replacement;
+                    }
+                });
+            }
+
+            // 5) Protect sequences of 3 or more ASCII dashes and 3 or more Chinese long dashes
+            const asciiDashSequences = [];
+            text = text.replace(/-{3,}/g, function (match) {
+                const token = "<<<TRIPLE_ASCII_DASH_" + asciiDashSequences.length + ">>>";
+                asciiDashSequences.push(match);
+                return token;
+            });
+
+            const cnDashSequences = [];
+            const cnDashRegex = /[\u2014]{3,}/g;
+            text = text.replace(cnDashRegex, function (match) {
+                const token = "<<<TRIPLE_CN_DASH_" + cnDashSequences.length + ">>>";
+                cnDashSequences.push(match);
+                return token;
+            });
+
+            // 6) Remove stray dots that are not in Latin or numeric contexts
+            text = text.replace(/(^|[^0-9A-Za-z])\./g, function (match, p1) {
+                return p1;
+            });
+
+            // 7) Normalize half-width commas to full-width and trim spaces around them
+            text = text.replace(/\s*,\s*/g, "，");
+
+            // 8) Collapse repeated Chinese commas and periods
+            text = text.replace(/，{2,}/g, "，");
+            text = text.replace(/。{2,}/g, "。");
+
+            // 9) Convert all hyphens "-" to Chinese dash (two U+2014)
+            text = text.replace(/-/g, "\u2014\u2014");
+
+            // 10) Convert English colon to Chinese colon
+            text = text.replace(/:/g, "：");
+
+            // 11) Remove spaces before common Chinese punctuation
+            text = text.replace(/\s+([。！？；：、，])/g, "$1");
+
+            // 12) Remove underscores
+            text = text.replace(/_/g, "");
+
+            // 13) Trim trailing spaces and tabs for each line
+            text = text.replace(/[ \t]+$/gm, "");
+
+            // 14) Convert ASCII double quotes to Chinese quotes (alternating open/close)
+            let isOpenQuote = true;
+            text = text.replace(/"/g, function () {
+                const ch = isOpenQuote ? "“" : "”";
+                isOpenQuote = !isOpenQuote;
+                return ch;
+            });
+
+            // 15) Insert an extra blank line between paragraphs:
+            //     sentence-ending punctuation (including closing double quote) + newline + next line
+            text = text.replace(/([。！？…”])\n([^\n])/g, "$1\n\n$2");
+
+            // 16) Collapse 3+ consecutive newlines into at most 2
+            text = text.replace(/\n{3,}/g, "\n\n");
+
+            // 17) Strip extra blank lines at file edges
+            text = text.replace(/^\n+|\n+$/g, "");
+
+            // 18) Restore protected dash sequences
+            text = text.replace(/<<<TRIPLE_ASCII_DASH_(\d+)>>>/g, function (match, index) {
+                const i = parseInt(index, 10);
+                return asciiDashSequences[i] !== undefined ? asciiDashSequences[i] : "";
+            });
+
+            text = text.replace(/<<<TRIPLE_CN_DASH_(\d+)>>>/g, function (match, index) {
+                const i = parseInt(index, 10);
+                return cnDashSequences[i] !== undefined ? cnDashSequences[i] : "";
+            });
+
+            return text;
+        }
+
+        // DOM elements
+        const fileInput = document.getElementById("fileInput");
+        const cleanButton = document.getElementById("cleanButton");
+        const downloadButton = document.getElementById("downloadButton");
+        const downloadMdButton = document.getElementById("downloadMdButton");
+        const copyButton = document.getElementById("copyButton");
+        const output = document.getElementById("output");
+        const fileInfo = document.getElementById("fileInfo");
+
+        let currentRawText = "";
+        let currentCleanedText = "";
+        let currentFileName = "";
+
+        // Handle file selection
+        fileInput.addEventListener("change", function () {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) {
+                fileInfo.textContent = "No file loaded.";
+                cleanButton.disabled = false;
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                currentRawText = event.target.result;
+                currentFileName = file.name;
+                fileInfo.textContent = "Loaded file: " + file.name + " (" + file.size + " bytes)";
+
+                output.value = currentRawText;
+                cleanButton.disabled = false;
+            };
+            reader.onerror = function () {
+                fileInfo.textContent = "Failed to read file.";
+                cleanButton.disabled = true;
+            };
+
+            reader.readAsText(file, "utf-8");
+        });
+
+        // Clean button
+        cleanButton.addEventListener("click", function () {
+            let sourceText = currentRawText;
+            if (!sourceText) {
+                sourceText = output.value || "";
+            }
+
+            const cleaned = cleanKindleText(sourceText);
+            currentCleanedText = cleaned;
+            output.value = cleaned;
+
+            const lengthInfo = cleaned.length ? "Text length: " + cleaned.length + " characters." : "No text to clean.";
+            fileInfo.textContent = lengthInfo + (currentFileName ? " Source file: " + currentFileName : "");
+
+            const hasText = cleaned.length > 0;
+            downloadButton.disabled = !hasText;
+            downloadMdButton.disabled = !hasText;
+            copyButton.disabled = !hasText;
+        });
+
+        // Download TXT
+        downloadButton.addEventListener("click", function () {
+            if (!currentCleanedText) {
+                return;
+            }
+
+            let downloadName = "kindle.txt";
+            if (currentFileName) {
+                downloadName = currentFileName.replace(/\.txt$/i, "") + ".txt";
+            }
+
+            const blob = new Blob([currentCleanedText], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = downloadName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        });
+
+        // Download MD
+        downloadMdButton.addEventListener("click", function () {
+            if (!currentCleanedText) {
+                return;
+            }
+
+            let downloadName = "kindle.md";
+            if (currentFileName) {
+                downloadName = currentFileName.replace(/\.txt$/i, "") + ".md";
+            }
+
+            const blob = new Blob([currentCleanedText], { type: "text/markdown;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = downloadName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        });
+
+        // Copy
+        copyButton.addEventListener("click", function () {
+            if (!currentCleanedText) {
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentCleanedText).then(function () {
+                    fileInfo.textContent = "Text copied to clipboard.";
+                }).catch(function () {
+                    fileInfo.textContent = "Failed to copy to clipboard.";
+                });
+            } else {
+                output.focus();
+                output.select();
+                fileInfo.textContent = "Select all and copy manually.";
+            }
+        });
+
+        // Allow cleaning pasted text even without file
+        cleanButton.disabled = false;
+    </script>
+</body>
+
+</html>
