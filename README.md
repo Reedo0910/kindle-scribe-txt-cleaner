@@ -4,9 +4,9 @@
 
 ## 这是什么
 
-这个工具的目标是先行对 Kindle Scribe 导出的中文手写稿的一些奇怪的格式进行预处理。比方说清除文本中的「页码标记、奇怪空格、看不见的字符」等，省去每次都要从头整理的功夫。
+这个工具用于先行对 Kindle Scribe 导出的中文手写稿的一些奇怪的格式进行预处理。比方说清除文本中的「页码标记、奇怪空格、看不见的字符」等，省去每次都要从头整理。
 
-不过之后大概率还是得自己再二次处理。
+（不过之后大概率还是得自己再二次处理。）
 
 目前仍是个很早期、很不成熟的 demo。基本是给（那个懒得写代码的）Zeee 自用的。
 
@@ -14,7 +14,7 @@
 
 ## Demo
 
-[Demo 在这里](https://reedo0910.github.io/kindle-scribe-txt-cleaner/)
+[https://reedo0910.github.io/kindle-scribe-txt-cleaner/](https://reedo0910.github.io/kindle-scribe-txt-cleaner/)
 
 ## 它会做什么
 
@@ -60,7 +60,7 @@
 
 不满意的话可以直接修改 `index.html` 里那的 `cleanKindleText` 函数。注释应该相对清晰了，毕竟是 AI 生成的。
 
-你也可以叫你自己的 AI 帮你从头写一份。
+你也可以叫自己的 AI 帮你从头写一份。
 
 ## 许可证
 
