@@ -1,4 +1,5 @@
 <!doctype html>
+
 <head>
     <meta charset="utf-8">
     <title>Kindle Scribe TXT Cleaner</title>
@@ -99,6 +100,11 @@
             white-space: pre-wrap;
         }
 
+        textarea.drag-over {
+            border-color: #007aff;
+            background-color: #f0f6ff;
+        }
+
         .actions {
             display: flex;
             flex-wrap: wrap;
@@ -126,7 +132,7 @@
 
         <div id="fileInfo" class="file-info">尚未载入文件。</div>
 
-        <textarea id="output" placeholder="清理后的文本会显示在这里。你也可以直接粘贴原始文本，然后点击下方的「清理」。"></textarea>
+        <textarea id="output" placeholder="清理后的文本会显示在这里。你也可以将 Kindle 导出的 TXT 文件拖拽到此处，或者粘贴原始文本，然后点击下方的「清理」。"></textarea>
 
         <div class="actions">
             <button id="cleanButton" class="primary" disabled>
@@ -165,7 +171,7 @@
         </div>
 
         <div class="hint">
-            小提示：如果你不想选择文件，可以把 Kindle 导出的原始文本直接粘贴到上面的文本框，然后点击下面的「清理」。
+            小提示：你可以直接把 Kindle 导出的 TXT 文件拖拽到上面的文本框，或者粘贴原始文本，然后点击下面的「清理」。
         </div>
     </div>
 
@@ -297,12 +303,17 @@
         let currentCleanedText = "";
         let currentFileName = "";
 
-        // Handle file selection
-        fileInput.addEventListener("change", function () {
-            const file = fileInput.files && fileInput.files[0];
+        // Helper to load a text file (used by both input and drag-and-drop)
+        function loadTextFile(file) {
             if (!file) {
                 fileInfo.textContent = "尚未载入文件。";
                 cleanButton.disabled = false;
+                return;
+            }
+
+            // Only allow plain text or .txt files
+            if (file.type && file.type !== "text/plain" && !/\.txt$/i.test(file.name)) {
+                fileInfo.textContent = "仅支持 TXT 文本文件。";
                 return;
             }
 
@@ -321,6 +332,42 @@
             };
 
             reader.readAsText(file, "utf-8");
+        }
+
+        // Handle file selection
+        fileInput.addEventListener("change", function () {
+            const file = fileInput.files && fileInput.files[0];
+            loadTextFile(file);
+        });
+
+        // Handle drag and drop on textarea
+        ["dragenter", "dragover"].forEach(function (eventName) {
+            output.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                output.classList.add("drag-over");
+            });
+        });
+
+        ["dragleave", "drop"].forEach(function (eventName) {
+            output.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                output.classList.remove("drag-over");
+            });
+        });
+
+        output.addEventListener("drop", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            output.classList.remove("drag-over");
+
+            const dt = e.dataTransfer;
+            if (!dt || !dt.files || !dt.files.length) {
+                return;
+            }
+            const file = dt.files[0];
+            loadTextFile(file);
         });
 
         // Handle "Clean" button click
