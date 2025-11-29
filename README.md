@@ -64,7 +64,7 @@
 
 ## 许可证
 
-[MIT](https://github.com/Reedo0910/Clean-Scribe-TXT/blob/master/LICENSE)
+[MIT](https://github.com/Reedo0910/kindle-scribe-txt-cleaner/blob/master/LICENSE)
 
 ------
 
